@@ -7,7 +7,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    /* Custom Scrollbars & Layout Tweaks */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #f1f5f9; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
@@ -75,8 +74,8 @@
             <option value="all">Ulaşım: Tümü</option>
             <option value="T">Sadece Tramvay (T)</option>
             <option value="M">Sadece Metro (M)</option>
-            <option value="TM">T1 + Metro Aktarmalı (TM)</option>
-            <option value="BUS">Otobüs / Minibüs (🚌)</option>
+            <option value="TM">M+T Aktarmalı</option>
+            <option value="BUS">Otobüs / Minibüs (O)</option>
           </select>
 
           <select id="sortBy" class="border border-slate-300 rounded-lg px-2 py-1 text-xs focus:ring-2 focus:ring-indigo-500 outline-none bg-white font-medium">
@@ -141,7 +140,7 @@
           </div>
           <h3 class="text-sm font-bold text-slate-200">Canlı Arama Ekranı</h3>
           <p class="text-xs text-slate-400 leading-relaxed">
-            Sol taraftaki listeden bir otelin <b>"İncele"</b> butonuna basarak Google Maps veya Trivago arama sayfasını doğrudan bu sağ panelde görüntüleyebilirsiniz.
+            Sol taraftaki listeden bir otelin <b>"Google"</b> veya <b>"Trivago"</b> butonuna basarak canlı arama sayfasını doğrudan bu sağ panelde görüntüleyebilirsiniz.
           </p>
         </div>
 
@@ -161,7 +160,6 @@
   </main>
 
   <script>
-    // Complete List of 33 Hotels with exact Penye Teks (Molla Fenari - Adem Yavuz Sk. / Çemberlitaş) transit badges
     const myHotelsList = [
       { id: "1", name: "Hotel Arcadia Blue", location: "Sultanahmet, Fatih", rating: 4.6, parking: "free", breakfast: true, transitBadge: "T", transitDetail: "Sultanahmet T1 Durağı ➔ Çemberlitaş / Beyazıt T1 (Doğrudan Tramvay)" },
       { id: "2", name: "Asmalı hotel", location: "Küçük Ayasofya, Fatih", rating: 4.4, parking: "paid", breakfast: true, transitBadge: "T", transitDetail: "Çemberlitaş T1 Durağına 5 dk yürüme (Doğrudan T1 Tramvay)" },
@@ -200,9 +198,8 @@
 
     let savedPrices = JSON.parse(localStorage.getItem('my_hotel_prices')) || {};
     let selectedHotelId = null;
-    let currentProvider = 'google'; // 'google' or 'trivago'
+    let currentProvider = 'google';
 
-    // Initialize Default Dates
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -211,7 +208,6 @@
     document.getElementById('checkIn').value = formatDateStr(today);
     document.getElementById('checkOut').value = formatDateStr(tomorrow);
 
-    // Save Price
     window.updatePrice = function(hotelId, value) {
       if (value === '' || isNaN(value)) {
         delete savedPrices[hotelId];
@@ -221,7 +217,6 @@
       localStorage.setItem('my_hotel_prices', JSON.stringify(savedPrices));
     };
 
-    // Reset Prices
     document.getElementById('resetPricesBtn').addEventListener('click', () => {
       if (confirm('Tüm girilen fiyatları sıfırlamak istediğinizden emin misiniz?')) {
         savedPrices = {};
@@ -230,7 +225,6 @@
       }
     });
 
-    // Generate URLs
     function getGoogleMapsLink(hotelName) {
       const q = encodeURIComponent(`${hotelName} İstanbul`);
       return `https://www.google.com/maps/search/${q}`;
@@ -244,7 +238,6 @@
       return `https://www.trivago.com.tr/tr/srl?search=${q}&checkIn=${checkIn}&checkOut=${checkOut}&rooms[0][adults]=${guests}`;
     }
 
-    // Load Preview in Right Frame
     window.selectHotelForPreview = function(hotelId, provider = 'google') {
       selectedHotelId = hotelId;
       currentProvider = provider;
@@ -262,7 +255,6 @@
       titleEl.innerText = `${hotel.name} (${provider.toUpperCase()})`;
       externalBtn.href = targetUrl;
 
-      // Update provider toggle button styles
       const btnG = document.getElementById('btnSwitchGoogle');
       const btnT = document.getElementById('btnSwitchTrivago');
       
@@ -278,11 +270,9 @@
       frame.classList.remove('hidden');
       frame.src = targetUrl;
 
-      // Highlight active card in left list
       renderHotelList();
     };
 
-    // Toggle Provider for active selected hotel
     document.getElementById('btnSwitchGoogle').addEventListener('click', () => {
       if (selectedHotelId) selectHotelForPreview(selectedHotelId, 'google');
     });
@@ -291,7 +281,6 @@
       if (selectedHotelId) selectHotelForPreview(selectedHotelId, 'trivago');
     });
 
-    // Render Left Hotel Cards
     function renderHotelList() {
       const container = document.getElementById('hotelListContainer');
       const searchQuery = document.getElementById('searchInput').value.toLowerCase();
@@ -302,15 +291,14 @@
         const matchesSearch = hotel.name.toLowerCase().includes(searchQuery) || hotel.location.toLowerCase().includes(searchQuery);
         let matchesTransport = true;
         
-        if (transportFilter === 'T') matchesTransport = hotel.transit === 'T1';
-        else if (transportFilter === 'M') matchesTransport = hotel.transit === 'M2';
-        else if (transportFilter === 'TM') matchesTransport = hotel.transit.includes('T1') || hotel.transit.includes('M2');
-        else if (transportFilter === 'BUS') matchesTransport = hotel.transit === 'BUS';
+        if (transportFilter === 'T') matchesTransport = hotel.transitBadge === 'T';
+        else if (transportFilter === 'M') matchesTransport = hotel.transitBadge === 'M';
+        else if (transportFilter === 'TM') matchesTransport = hotel.transitBadge === 'M+T';
+        else if (transportFilter === 'BUS') matchesTransport = hotel.transitBadge === 'O';
 
         return matchesSearch && matchesTransport;
       });
 
-      // Sort
       filtered.sort((a, b) => {
         const priceA = savedPrices[a.id] !== undefined ? savedPrices[a.id] : Infinity;
         const priceB = savedPrices[b.id] !== undefined ? savedPrices[b.id] : Infinity;
@@ -344,7 +332,6 @@
         const isSelected = selectedHotelId === hotel.id;
         const currentPrice = savedPrices[hotel.id] !== undefined ? savedPrices[hotel.id] : '';
 
-        // Penye Teks Specific Transit Badge
         let transitBadgeHTML = '';
         if (hotel.transitBadge === 'T') {
           transitBadgeHTML = `<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 font-black px-2 py-0.5 rounded text-[11px]" title="${hotel.transitDetail}">T</span>`;
@@ -356,7 +343,6 @@
           transitBadgeHTML = `<span class="bg-amber-300 text-amber-950 border border-amber-400 font-black px-2 py-0.5 rounded text-[11px]" title="${hotel.transitDetail}">O</span>`;
         }
 
-        // Parking Tag
         let parkingTagHTML = '';
         if (hotel.parking === 'free') {
           parkingTagHTML = `<span class="bg-emerald-50 text-emerald-700 font-bold px-1.5 py-0.5 rounded text-[10px] border border-emerald-200">P Ücretsiz</span>`;
@@ -387,7 +373,6 @@
             </div>
           </div>
 
-          <!-- Transit & Attributes -->
           <div class="flex flex-wrap items-center gap-1.5 text-[11px]">
             ${transitBadgeHTML}
             ${parkingTagHTML}
@@ -400,7 +385,6 @@
             <b>Penye Teks Hat Detayı:</b> ${hotel.transitDetail}
           </p>
 
-          <!-- Input Price & Preview Buttons -->
           <div class="flex items-center gap-2 pt-1">
             <div class="relative flex-1">
               <span class="absolute left-2.5 top-1.5 text-slate-400 font-bold text-xs">₺</span>
@@ -424,4 +408,14 @@
 
       lucide.createIcons();
     }
-<!-- ... existing code ... />
+
+    document.getElementById('searchInput').addEventListener('input', renderHotelList);
+    document.getElementById('transportFilter').addEventListener('change', renderHotelList);
+    document.getElementById('sortBy').addEventListener('change', renderHotelList);
+
+    window.onload = function() {
+      renderHotelList();
+    };
+  </script>
+</body>
+</html>
