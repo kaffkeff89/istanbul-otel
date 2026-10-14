@@ -14,11 +14,11 @@
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
   </style>
 </head>
-<body class="bg-slate-100 h-screen overflow-hidden text-slate-800 flex flex-col font-sans">
+<body class="bg-slate-100 min-h-screen text-slate-800 flex flex-col font-sans">
 
   <!-- ÜST KONTROL PANELİ -->
-  <header class="bg-slate-900 text-white p-3 shadow-md z-10 flex-shrink-0 border-b border-slate-800">
-    <div class="max-w-full mx-auto flex flex-wrap items-center justify-between gap-3">
+  <header class="bg-slate-900 text-white p-3 shadow-md z-10 flex-shrink-0 sticky top-0">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
       
       <!-- Başlık -->
       <div class="flex items-center gap-2">
@@ -31,19 +31,13 @@
         </div>
       </div>
 
-      <!-- Tarih, Kişi, Oda Seçimi -->
+      <!-- Akıllı Tarih Seçimi -->
       <div class="flex flex-wrap items-center gap-2 text-xs">
-        <!-- Giriş Tarihi -->
         <div class="flex items-center bg-slate-800 px-2 py-1 rounded border border-slate-700">
-          <i data-lucide="calendar-check" class="w-3.5 h-3.5 text-blue-400 mr-1.5"></i>
-          <span class="text-slate-400 mr-1">Giriş:</span>
-          <input type="date" id="checkInDate" onchange="handleCheckInChange(this.value)" class="bg-transparent text-white focus:outline-none cursor-pointer">
-        </div>
-
-        <!-- Çıkış Tarihi -->
-        <div class="flex items-center bg-slate-800 px-2 py-1 rounded border border-slate-700">
-          <i data-lucide="calendar-x" class="w-3.5 h-3.5 text-amber-400 mr-1.5"></i>
-          <span class="text-slate-400 mr-1">Çıkış:</span>
+          <i data-lucide="calendar" class="w-3.5 h-3.5 text-blue-400 mr-1.5"></i>
+          <span class="text-slate-400 mr-1">Tarih Aralığı:</span>
+          <input type="date" id="checkInDate" onchange="handleDateSelect()" class="bg-transparent text-white focus:outline-none cursor-pointer">
+          <span class="text-slate-500 mx-1">➔</span>
           <input type="date" id="checkOutDate" onchange="renderHotels()" class="bg-transparent text-white focus:outline-none cursor-pointer">
         </div>
 
@@ -57,133 +51,94 @@
               <option value="3" class="bg-slate-800">3 Kişi</option>
             </select>
           </div>
-          <span class="text-slate-600">|</span>
-          <div class="flex items-center">
-            <i data-lucide="bed" class="w-3.5 h-3.5 text-slate-400 mr-1"></i>
-            <select id="roomCount" onchange="renderHotels()" class="bg-transparent text-white focus:outline-none cursor-pointer">
-              <option value="1" selected class="bg-slate-800">1 Oda</option>
-              <option value="2" class="bg-slate-800">2 Oda</option>
-            </select>
-          </div>
         </div>
       </div>
 
-      <!-- Sıralama ve Arama -->
+      <!-- Bölge & Sıralama Filtreleri -->
       <div class="flex items-center gap-2">
-        <input type="text" id="searchInput" oninput="renderHotels()" placeholder="Otel ara..." class="bg-slate-800 border border-slate-700 text-xs text-white rounded px-2 py-1 w-28 focus:outline-none focus:border-blue-500">
-        
+        <select id="districtFilter" onchange="renderHotels()" class="bg-slate-800 border border-slate-700 text-xs text-white rounded px-2 py-1 focus:outline-none cursor-pointer">
+          <option value="all">Tüm Bölgeler / Semtler</option>
+          <option value="Sultanahmet / Sirkeci">Sultanahmet / Sirkeci</option>
+          <option value="Laleli / Fatih">Laleli / Fatih</option>
+          <option value="Topkapı / Fındıkzade">Topkapı / Fındıkzade</option>
+          <option value="Şişli / Harbiye">Şişli / Harbiye</option>
+          <option value="Diğer Bölgeler">Diğer Bölgeler</option>
+        </select>
+
         <select id="sortSelect" onchange="renderHotels()" class="bg-slate-800 border border-slate-700 text-xs text-white rounded px-2 py-1 focus:outline-none cursor-pointer">
-          <option value="default">Varsayılan Sıra</option>
-          <option value="priceAsc">Fiyat: Düşükten Yükseğe</option>
-          <option value="priceDesc">Fiyat: Yüksekten Düşüğe</option>
+          <option value="priceAsc" selected>En Ucuz Fiyat ➔ En Üste</option>
           <option value="ratingDesc">Puan: Yüksekten Düşüğe</option>
+          <option value="walkAsc">Durağa Yürüme: En Yakın</option>
         </select>
       </div>
 
     </div>
   </header>
 
-  <!-- ANA İÇERİK (SPLIT SCREEN) -->
-  <div class="flex-1 flex overflow-hidden">
+  <!-- İÇERİK -->
+  <main class="max-w-7xl mx-auto w-full p-4 flex-1">
     
-    <!-- SOL PANEL: OTEL LİSTESİ -->
-    <div class="w-full md:w-[500px] lg:w-[550px] bg-slate-50 flex flex-col border-r border-slate-200 flex-shrink-0">
-      
-      <!-- Ulaşım Bilgilendirme Lejantı -->
-      <div class="bg-white px-3 py-2 border-b border-slate-200 text-[11px] flex items-center justify-between text-slate-600">
-        <span class="font-medium">Penye Teks Ulaşımı:</span>
-        <div class="flex items-center gap-1.5">
-          <span class="badge-transit bg-emerald-600 text-white" title="Doğrudan T1 Tramvay">T</span>
-          <span class="badge-transit bg-blue-600 text-white" title="Doğrudan M2 Metro">M</span>
-          <span class="badge-transit bg-purple-600 text-white" title="Metro + Tramvay Aktarma">M+T</span>
-          <span class="badge-transit bg-amber-500 text-white" title="Sadece Otobüs/Minibüs">O</span>
-        </div>
+    <!-- Semt Açıklamaları & Ulaşım Bilgi Rozetleri -->
+    <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm mb-4 flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div class="flex items-center gap-2">
+        <span class="font-bold text-slate-700">Penye Teks Ulaşım Simgeleri:</span>
+        <span class="badge-transit bg-emerald-600 text-white" title="T1 Tramvay">T</span> <span class="text-slate-600">Tramvay</span>
+        <span class="badge-transit bg-blue-600 text-white" title="M2 Metro">M</span> <span class="text-slate-600">Metro</span>
+        <span class="badge-transit bg-purple-600 text-white" title="Metro + Tramvay">M+T</span> <span class="text-slate-600">Aktarmalı</span>
+        <span class="badge-transit bg-amber-500 text-white" title="Otobüs">O</span> <span class="text-slate-600">Otobüs</span>
       </div>
-
-      <!-- Sayı Özeti -->
-      <div class="px-3 py-1.5 bg-slate-100 text-[11px] text-slate-500 flex justify-between items-center border-b border-slate-200">
-        <span id="hotelCount">33 Otel Listeleniyor</span>
-        <span>Sağ panele yüklemek için Google / Trivago butonuna basın</span>
-      </div>
-
-      <!-- Otel Kartları Listesi -->
-      <div id="hotelList" class="flex-1 overflow-y-auto p-2 space-y-2 custom-scrollbar">
-        <!-- JS ile doldurulacak -->
-      </div>
+      <div id="hotelCount" class="font-semibold text-blue-600">33 Otel Listeleniyor</div>
     </div>
 
-    <!-- SAĞ PANEL: CANLI İNCELEME EKRANI (SPLIT SCREEN) -->
-    <div class="hidden md:flex flex-1 bg-slate-200 flex-col">
-      <!-- Panel Başlığı -->
-      <div class="bg-white px-4 py-2 border-b border-slate-200 flex justify-between items-center text-xs">
-        <div class="flex items-center gap-2">
-          <i data-lucide="globe" class="w-4 h-4 text-slate-500"></i>
-          <span id="previewTitle" class="font-medium text-slate-700">İncelemek istediğiniz otelin Google veya Trivago butonuna tıklayın</span>
-        </div>
-        <div class="flex items-center gap-2" id="previewActions" style="display:none;">
-          <a id="externalLink" href="#" target="_blank" class="text-blue-600 hover:underline flex items-center gap-1">
-            <span>Yeni Sekmede Aç</span>
-            <i data-lucide="external-link" class="w-3 h-3"></i>
-          </a>
-        </div>
-      </div>
-
-      <!-- Iframe Ekranı -->
-      <div class="flex-1 relative bg-white">
-        <div id="previewPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center text-slate-400">
-          <i data-lucide="layout" class="w-12 h-12 mb-3 text-slate-300"></i>
-          <p class="font-medium text-slate-600">Canlı Önizleme Ekranı</p>
-          <p class="text-xs max-w-sm mt-1">Sol taraftaki otellerden birinin Google veya Trivago butonuna bastığınızda seçtiğiniz tarihteki canlı arama ekranı bu panele yüklenecektir.</p>
-        </div>
-        <iframe id="previewIframe" class="w-full h-full border-0 relative z-10 hidden" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
-      </div>
+    <!-- Otel Listesi Grid -->
+    <div id="hotelList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- Oteller JS ile yüklenecek -->
     </div>
 
-  </div>
+  </main>
 
   <script>
-    // Kullanıcının Google Haritalar'ındaki 33 Otellik Tam Liste & Penye Teks Ulaşım Bilgileri
+    // 33 Otellik Liste - Semt Sınıflandırması & Yürüme Dakikası Eklendi
     const hotelsData = [
-      { id: 1, name: "Hotel Arcadia Blue", district: "Sultanahmet", rating: 4.6, parking: "free", penyeTransit: "T", transitDesc: "T1 Sultanahmet / Çemberlitaş durağına 3 dk yürüme." },
-      { id: 2, name: "Asmalı Hotel", district: "Fatih", rating: 4.2, parking: "paid", penyeTransit: "T", transitDesc: "T1 Sultanahmet durağına 5 dk yürüme." },
-      { id: 3, name: "The Cettia Istanbul", district: "Şişli", rating: 4.4, parking: "none", penyeTransit: "M+T", transitDesc: "M2 Metro ile Laleli/Vezneciler veya T1 aktarma." },
-      { id: 4, name: "Artika Hotel", district: "Sultanahmet", rating: 4.5, parking: "free", penyeTransit: "T", transitDesc: "T1 Çemberlitaş durağına 4 dk yürüme." },
-      { id: 5, name: "Eresin Hotels Topkapı", district: "Topkapı", rating: 4.3, parking: "free", penyeTransit: "T", transitDesc: "T1 Pazartekke / Topkapı tramvay hattı ile doğrudan Çemberlitaş." },
-      { id: 6, name: "Uranus Istanbul Topkapi", district: "Topkapı", rating: 4.4, parking: "free", penyeTransit: "M+T", transitDesc: "M1/T1 aktarması ile Beyazıt / Çemberlitaş." },
-      { id: 7, name: "Santra Hotel", district: "Fatih", rating: 4.1, parking: "paid", penyeTransit: "M", transitDesc: "M2 Vezneciler durağına yürüme mesafesinde." },
-      { id: 8, name: "The Hubi Hotel", district: "Şişli", rating: 4.3, parking: "paid", penyeTransit: "M+T", transitDesc: "M2 Yenikapı yönü -> Vezneciler veya T1 aktarma." },
-      { id: 9, name: "Garden House Hotel", district: "Sultanahmet", rating: 4.5, parking: "free", penyeTransit: "T", transitDesc: "T1 Çemberlitaş durağına 5 dk yürüme." },
-      { id: 10, name: "Porta Romanos Hotel & Restaurant", district: "Topkapı", rating: 4.2, parking: "paid", penyeTransit: "T", transitDesc: "T1 Tramvay hattı ile doğrudan Çemberlitaş." },
-      { id: 11, name: "Crowne Plaza İstanbul Old City", district: "Fatih", rating: 4.6, parking: "free", penyeTransit: "T", transitDesc: "T1 Laleli/Laleli-Üniversite durağında (2 durak sonra Çemberlitaş)." },
-      { id: 12, name: "DoubleTree by Hilton Istanbul Topkapi", district: "Topkapı", rating: 4.5, parking: "free", penyeTransit: "M+T", transitDesc: "T1 veya M1 otobüs/tramvay aktarmalı." },
-      { id: 13, name: "Dosso Dossi Hotels Downtown", district: "Vatan Cad.", rating: 4.6, parking: "free", penyeTransit: "M", transitDesc: "M1 Emniyet-Fatih -> Aksaray/Vezneciler." },
-      { id: 14, name: "Eresin Hotels Express", district: "Topkapı", rating: 4.0, parking: "paid", penyeTransit: "T", transitDesc: "T1 Tramvayı ile doğrudan Çemberlitaş." },
-      { id: 15, name: "Grand Anka Hotel Istanbul", district: "Fındıkzade", rating: 4.1, parking: "free", penyeTransit: "T", transitDesc: "T1 Fındıkzade durağından doğrudan Çemberlitaş." },
-      { id: 16, name: "Danis Hotel & Spa Istanbul - Old City", district: "Laleli", rating: 4.4, parking: "paid", penyeTransit: "T", transitDesc: "T1 Laleli durağına 2 dk yürüme." },
-      { id: 17, name: "Golden Tulip Istanbul Bayrampasa", district: "Bayrampaşa", rating: 4.3, parking: "free", penyeTransit: "M+T", transitDesc: "M1 Metro ile Aksaray -> T1 Tramvay aktarma." },
-      { id: 18, name: "Mercure İstanbul Sirkeci Hotel", district: "Sirkeci", rating: 4.5, parking: "paid", penyeTransit: "T", transitDesc: "T1 Sirkeci durağından 2 durak (Çemberlitaş)." },
-      { id: 19, name: "Gen Suites Cibali", district: "Cibali", rating: 4.2, parking: "none", penyeTransit: "O", transitDesc: "Eminönü otobüsü -> T1 Tramvay aktarma." },
-      { id: 20, name: "Crowne Plaza Istanbul - Harbiye", district: "Harbiye", rating: 4.4, parking: "free", penyeTransit: "M+T", transitDesc: "M2 Osmanbey -> Vezneciler (yürüme) veya T1 aktarma." },
-      { id: 21, name: "Windsor Hotel & Convention Center", district: "Bayrampaşa", rating: 4.2, parking: "free", penyeTransit: "M+T", transitDesc: "M1 Metro + T1 Tramvay aktarması." },
-      { id: 22, name: "Gümüş Palace Hotel Güngören", district: "Güngören", rating: 3.9, parking: "none", penyeTransit: "T", transitDesc: "T1 Güngören durağından kesintisiz Çemberlitaş." },
-      { id: 23, name: "Mövenpick Istanbul Marmara Sea", district: "Zeytinburnu", rating: 4.6, parking: "free", penyeTransit: "M+T", transitDesc: "Marmaray Kazlıçeşme -> Sirkeci -> T1 aktarma." },
-      { id: 24, name: "Ramada Plaza By Wyndham City Center", district: "Pangaltı", rating: 4.3, parking: "paid", penyeTransit: "M", transitDesc: "M2 Osmanbey -> Vezneciler (8 dk yürüme)." },
-      { id: 25, name: "Ramada by Wyndham Istanbul Old City", district: "Fındıkzade", rating: 4.2, parking: "paid", penyeTransit: "T", transitDesc: "T1 Fındıkzade durağı karşısı." },
-      { id: 26, name: "Days Inn by Wyndham Istanbul Bomonti", district: "Bomonti", rating: 4.1, parking: "paid", penyeTransit: "M+T", transitDesc: "M2 Metro ile Vezneciler." },
-      { id: 27, name: "Radisson Hotel Istanbul Merter", district: "Merter", rating: 4.5, parking: "free", penyeTransit: "M+T", transitDesc: "M1A Merter -> Aksaray -> T1 Çemberlitaş." },
-      { id: 28, name: "ibis Styles İstanbul Merter", district: "Merter", rating: 4.2, parking: "free", penyeTransit: "M+T", transitDesc: "M1A / T1 aktarmalı ulaşım." },
-      { id: 29, name: "Ramada Hotel & Suites Merter", district: "Merter", rating: 4.3, parking: "free", penyeTransit: "M+T", transitDesc: "M1A Metro + T1 Tramvay." },
-      { id: 30, name: "Novotel Zeytinburnu", district: "Zeytinburnu", rating: 4.2, parking: "free", penyeTransit: "O", transitDesc: "Sahil otobüsleri ile Eminönü -> T1 aktarma." },
-      { id: 31, name: "Holiday Inn Express Ataköy Metro", district: "Ataköy", rating: 4.1, parking: "free", penyeTransit: "M+T", transitDesc: "M1A Ataköy -> Aksaray -> T1 Çemberlitaş." },
-      { id: 32, name: "Hampton by Hilton Istanbul Old City", district: "Yenikapı", rating: 4.3, parking: "free", penyeTransit: "M", transitDesc: "Yenikapı M2 / Marmaray ile kolay erişim." },
-      { id: 33, name: "Ramada Encore Bayrampaşa", district: "Bayrampaşa", rating: 4.0, parking: "free", penyeTransit: "M+T", transitDesc: "M1 Metro + T1 Tramvay aktarma." }
+      { id: 1, name: "Hotel Arcadia Blue", region: "Sultanahmet / Sirkeci", district: "Sultanahmet", rating: 4.6, parking: "free", penyeTransit: "T", walkMin: 3, transitDesc: "T1 Sultanahmet durağına 3 dk yürüme." },
+      { id: 2, name: "Asmalı Hotel", region: "Sultanahmet / Sirkeci", district: "Sultanahmet", rating: 4.2, parking: "paid", penyeTransit: "T", walkMin: 5, transitDesc: "T1 Sultanahmet durağına 5 dk yürüme." },
+      { id: 3, name: "The Cettia Istanbul", region: "Şişli / Harbiye", district: "Şişli", rating: 4.4, parking: "none", penyeTransit: "M+T", walkMin: 6, transitDesc: "M2 Metro durağına 6 dk yürüme." },
+      { id: 4, name: "Artika Hotel", region: "Sultanahmet / Sirkeci", district: "Sultanahmet", rating: 4.5, parking: "free", penyeTransit: "T", walkMin: 4, transitDesc: "T1 Çemberlitaş durağına 4 dk yürüme." },
+      { id: 5, name: "Eresin Hotels Topkapı", region: "Topkapı / Fındıkzade", district: "Topkapı", rating: 4.3, parking: "free", penyeTransit: "T", walkMin: 2, transitDesc: "T1 Pazartekke durağına 2 dk yürüme." },
+      { id: 6, name: "Uranus Istanbul Topkapi", region: "Topkapı / Fındıkzade", district: "Topkapı", rating: 4.4, parking: "free", penyeTransit: "M+T", walkMin: 7, transitDesc: "Cevizlibağ durağına 7 dk yürüme." },
+      { id: 7, name: "Santra Hotel", region: "Laleli / Fatih", district: "Fatih", rating: 4.1, parking: "paid", penyeTransit: "M", walkMin: 5, transitDesc: "M2 Vezneciler durağına 5 dk yürüme." },
+      { id: 8, name: "The Hubi Hotel", region: "Şişli / Harbiye", district: "Şişli", rating: 4.3, parking: "paid", penyeTransit: "M+T", walkMin: 5, transitDesc: "M2 Osmanbey durağına 5 dk yürüme." },
+      { id: 9, name: "Garden House Hotel", region: "Sultanahmet / Sirkeci", district: "Sultanahmet", rating: 4.5, parking: "free", penyeTransit: "T", walkMin: 5, transitDesc: "T1 Çemberlitaş durağına 5 dk yürüme." },
+      { id: 10, name: "Porta Romanos Hotel & Restaurant", region: "Topkapı / Fındıkzade", district: "Topkapı", rating: 4.2, parking: "paid", penyeTransit: "T", walkMin: 3, transitDesc: "T1 Topkapı durağına 3 dk yürüme." },
+      { id: 11, name: "Crowne Plaza İstanbul Old City", region: "Laleli / Fatih", district: "Laleli", rating: 4.6, parking: "free", penyeTransit: "T", walkMin: 2, transitDesc: "T1 Laleli durağına 2 dk yürüme." },
+      { id: 12, name: "DoubleTree by Hilton Istanbul Topkapi", region: "Topkapı / Fındıkzade", district: "Topkapı", rating: 4.5, parking: "free", penyeTransit: "M+T", walkMin: 6, transitDesc: "Tramvay/Metro durağına 6 dk yürüme." },
+      { id: 13, name: "Dosso Dossi Hotels Downtown", region: "Laleli / Fatih", district: "Vatan Cad.", rating: 4.6, parking: "free", penyeTransit: "M", walkMin: 3, transitDesc: "M1 Emniyet-Fatih durağına 3 dk yürüme." },
+      { id: 14, name: "Eresin Hotels Express", region: "Topkapı / Fındıkzade", district: "Topkapı", rating: 4.0, parking: "paid", penyeTransit: "T", walkMin: 2, transitDesc: "T1 Pazartekke durağına 2 dk yürüme." },
+      { id: 15, name: "Grand Anka Hotel Istanbul", region: "Topkapı / Fındıkzade", district: "Fındıkzade", rating: 4.1, parking: "free", penyeTransit: "T", walkMin: 3, transitDesc: "T1 Fındıkzade durağına 3 dk yürüme." },
+      { id: 16, name: "Danis Hotel & Spa Istanbul - Old City", region: "Laleli / Fatih", district: "Laleli", rating: 4.4, parking: "paid", penyeTransit: "T", walkMin: 3, transitDesc: "T1 Laleli durağına 3 dk yürüme." },
+      { id: 17, name: "Golden Tulip Istanbul Bayrampasa", region: "Diğer Bölgeler", district: "Bayrampaşa", rating: 4.3, parking: "free", penyeTransit: "M+T", walkMin: 8, transitDesc: "M1 Sağmalcılar durağına 8 dk yürüme." },
+      { id: 18, name: "Mercure İstanbul Sirkeci Hotel", region: "Sultanahmet / Sirkeci", district: "Sirkeci", rating: 4.5, parking: "paid", penyeTransit: "T", walkMin: 2, transitDesc: "T1 Sirkeci durağına 2 dk yürüme." },
+      { id: 19, name: "Gen Suites Cibali", region: "Laleli / Fatih", district: "Cibali", rating: 4.2, parking: "none", penyeTransit: "O", walkMin: 4, transitDesc: "Otobüs durağına 4 dk yürüme." },
+      { id: 20, name: "Crowne Plaza Istanbul - Harbiye", region: "Şişli / Harbiye", district: "Harbiye", rating: 4.4, parking: "free", penyeTransit: "M+T", walkMin: 7, transitDesc: "M2 Osmanbey durağına 7 dk yürüme." },
+      { id: 21, name: "Windsor Hotel & Convention Center", region: "Diğer Bölgeler", district: "Bayrampaşa", rating: 4.2, parking: "free", penyeTransit: "M+T", walkMin: 6, transitDesc: "Tramvay durağına 6 dk yürüme." },
+      { id: 22, name: "Gümüş Palace Hotel Güngören", region: "Diğer Bölgeler", district: "Güngören", rating: 3.9, parking: "none", penyeTransit: "T", walkMin: 4, transitDesc: "T1 Güngören durağına 4 dk yürüme." },
+      { id: 23, name: "Mövenpick Istanbul Marmara Sea", region: "Diğer Bölgeler", district: "Zeytinburnu", rating: 4.6, parking: "free", penyeTransit: "M+T", walkMin: 5, transitDesc: "Marmaray Kazlıçeşme durağına 5 dk yürüme." },
+      { id: 24, name: "Ramada Plaza By Wyndham City Center", region: "Şişli / Harbiye", district: "Pangaltı", rating: 4.3, parking: "paid", penyeTransit: "M", walkMin: 2, transitDesc: "M2 Osmanbey metro çıkışında (1 dk)." },
+      { id: 25, name: "Ramada by Wyndham Istanbul Old City", region: "Topkapı / Fındıkzade", district: "Fındıkzade", rating: 4.2, parking: "paid", penyeTransit: "T", walkMin: 1, transitDesc: "T1 Fındıkzade durağında (1 dk)." },
+      { id: 26, name: "Days Inn by Wyndham Istanbul Bomonti", region: "Şişli / Harbiye", district: "Bomonti", rating: 4.1, parking: "paid", penyeTransit: "M+T", walkMin: 9, transitDesc: "M2 Osmanbey durağına 9 dk yürüme." },
+      { id: 27, name: "Radisson Hotel Istanbul Merter", region: "Diğer Bölgeler", district: "Merter", rating: 4.5, parking: "free", penyeTransit: "M+T", walkMin: 4, transitDesc: "M1 Merter durağına 4 dk yürüme." },
+      { id: 28, name: "ibis Styles İstanbul Merter", region: "Diğer Bölgeler", district: "Merter", rating: 4.2, parking: "free", penyeTransit: "M+T", walkMin: 5, transitDesc: "M1/T1 durağına 5 dk yürüme." },
+      { id: 29, name: "Ramada Hotel & Suites Merter", region: "Diğer Bölgeler", district: "Merter", rating: 4.3, parking: "free", penyeTransit: "M+T", walkMin: 4, transitDesc: "M1 Merter durağına 4 dk yürüme." },
+      { id: 30, name: "Novotel Zeytinburnu", region: "Diğer Bölgeler", district: "Zeytinburnu", rating: 4.2, parking: "free", penyeTransit: "O", walkMin: 5, transitDesc: "Otobüs durağına 5 dk yürüme." },
+      { id: 31, name: "Holiday Inn Express Ataköy Metro", region: "Diğer Bölgeler", district: "Ataköy", rating: 4.1, parking: "free", penyeTransit: "M+T", walkMin: 3, transitDesc: "M1 Ataköy durağına 3 dk yürüme." },
+      { id: 32, name: "Hampton by Hilton Istanbul Old City", region: "Laleli / Fatih", district: "Yenikapı", rating: 4.3, parking: "free", penyeTransit: "M", walkMin: 4, transitDesc: "Yenikapı Aktarma Merkezine 4 dk yürüme." },
+      { id: 33, name: "Ramada Encore Bayrampaşa", region: "Diğer Bölgeler", district: "Bayrampaşa", rating: 4.0, parking: "free", penyeTransit: "M+T", walkMin: 7, transitDesc: "Metro durağına 7 dk yürüme." }
     ];
 
-    // Yerel Hafıza (LocalStorage) Yönetimi
     let savedPrices = JSON.parse(localStorage.getItem('hotel_prices_db')) || {};
     let savedBreakfast = JSON.parse(localStorage.getItem('hotel_breakfast_db')) || {};
+    let dateStep = 0; // Tarih seçme adımı kontrolü
 
-    // Varsayılan Tarihleri Ayarla (Bugün ve Yarın)
     window.addEventListener('DOMContentLoaded', () => {
       const today = new Date();
       const tomorrow = new Date(today);
@@ -193,27 +148,35 @@
       document.getElementById('checkOutDate').value = formatDate(tomorrow);
 
       renderHotels();
-      lucide.createIcons();
     });
 
     function formatDate(date) {
       return date.toISOString().split('T')[0];
     }
 
-    // Giriş Tarihi Değiştiğinde Otomatik Çıkış Tarihini 1 Gün Sonraya Çek
-    function handleCheckInChange(checkInVal) {
-      if (!checkInVal) return;
-      const inDate = new Date(checkInVal);
-      const outDate = new Date(inDate);
-      outDate.setDate(outDate.getDate() + 1);
-      document.getElementById('checkOutDate').value = formatDate(outDate);
+    // Akıllı Tarih Seçimi (İlk Tıklama Giriş, İkinci Tıklama Çıkış)
+    function handleDateSelect() {
+      const checkInInput = document.getElementById('checkInDate');
+      const checkOutInput = document.getElementById('checkOutDate');
+
+      if (checkInInput.value) {
+        const inDate = new Date(checkInInput.value);
+        const outDate = new Date(inDate);
+        outDate.setDate(outDate.getDate() + 1);
+        checkOutInput.value = formatDate(outDate);
+      }
       renderHotels();
     }
 
-    // Fiyat ve Kahvaltı Değişiklikleri
+    // Fiyat Girildiği Anda Dinamik Sıralama ve Kayıt
     function savePrice(id, price) {
-      savedPrices[id] = price;
+      if (price === '' || price === null) {
+        delete savedPrices[id];
+      } else {
+        savedPrices[id] = parseFloat(price);
+      }
       localStorage.setItem('hotel_prices_db', JSON.stringify(savedPrices));
+      renderHotels(); // Anında yeniden sırala
     }
 
     function toggleBreakfast(id) {
@@ -222,25 +185,27 @@
       renderHotels();
     }
 
-    // Otel Arama & Sıralama Filtresi
     function getFilteredHotels() {
-      const search = document.getElementById('searchInput').value.toLowerCase();
+      const region = document.getElementById('districtFilter').value;
       const sort = document.getElementById('sortSelect').value;
 
-      let list = hotelsData.filter(h => h.name.toLowerCase().includes(search) || h.district.toLowerCase().includes(search));
+      let list = hotelsData.filter(h => region === 'all' || h.region === region);
 
       if (sort === 'priceAsc') {
-        list.sort((a, b) => (parseFloat(savedPrices[a.id]) || 99999) - (parseFloat(savedPrices[b.id]) || 99999));
-      } else if (sort === 'priceDesc') {
-        list.sort((a, b) => (parseFloat(savedPrices[b.id]) || 0) - (parseFloat(savedPrices[a.id]) || 0));
+        list.sort((a, b) => {
+          const pA = savedPrices[a.id] !== undefined ? savedPrices[a.id] : 999999;
+          const pB = savedPrices[b.id] !== undefined ? savedPrices[b.id] : 999999;
+          return pA - pB;
+        });
       } else if (sort === 'ratingDesc') {
         list.sort((a, b) => b.rating - a.rating);
+      } else if (sort === 'walkAsc') {
+        list.sort((a, b) => a.walkMin - b.walkMin);
       }
 
       return list;
     }
 
-    // Arayüzü Çiz (Render)
     function renderHotels() {
       const listContainer = document.getElementById('hotelList');
       const filtered = getFilteredHotels();
@@ -253,77 +218,82 @@
       listContainer.innerHTML = '';
 
       filtered.forEach(hotel => {
-        const price = savedPrices[hotel.id] || '';
+        const price = savedPrices[hotel.id] !== undefined ? savedPrices[hotel.id] : '';
         const hasBreakfast = savedBreakfast[hotel.id] || false;
 
-        // Penye Teks Ulaşım Rozeti Rengi
         let transitBadgeClass = 'bg-amber-500';
         if (hotel.penyeTransit === 'T') transitBadgeClass = 'bg-emerald-600';
         if (hotel.penyeTransit === 'M') transitBadgeClass = 'bg-blue-600';
         if (hotel.penyeTransit === 'M+T') transitBadgeClass = 'bg-purple-600';
 
-        // Otopark Simgesi
-        let parkingHTML = '';
-        if (hotel.parking === 'free') {
-          parkingHTML = `<span class="text-emerald-600 font-bold text-xs flex items-center gap-0.5" title="Ücretsiz Otopark"><i data-lucide="square-p" class="w-4 h-4"></i> Ücretsiz</span>`;
-        } else if (hotel.parking === 'paid') {
-          parkingHTML = `<span class="text-amber-600 font-bold text-xs flex items-center gap-0.5" title="Ücretli Otopark"><i data-lucide="square-p" class="w-4 h-4"></i> ₺</span>`;
-        } else {
-          parkingHTML = `<span class="text-red-400 font-bold text-xs flex items-center gap-0.5 line-through opacity-60" title="Otopark Yok"><i data-lucide="square-p" class="w-4 h-4"></i></span>`;
-        }
+        let parkingHTML = hotel.parking === 'free' 
+          ? `<span class="text-emerald-600 font-bold text-xs flex items-center gap-0.5"><i data-lucide="square-p" class="w-4 h-4"></i> Ücretsiz P</span>`
+          : hotel.parking === 'paid' 
+          ? `<span class="text-amber-600 font-bold text-xs flex items-center gap-0.5"><i data-lucide="square-p" class="w-4 h-4"></i> ₺ Ücretli P</span>`
+          : `<span class="text-red-400 font-bold text-xs flex items-center gap-0.5 line-through opacity-60"><i data-lucide="square-p" class="w-4 h-4"></i> Otopark Yok</span>`;
 
-        // Linkler
+        // Dış Sekmede Açılan Temiz Linkler
         const googleUrl = `https://www.google.com/travel/hotels/search?q=${encodeURIComponent(hotel.name + ' ' + hotel.district)}&q=${checkIn}&checkout=${checkOut}`;
         const trivagoUrl = `https://www.trivago.com.tr/tr/srl?q=${encodeURIComponent(hotel.name)}&checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}`;
 
         const card = document.createElement('div');
-        card.className = "bg-white p-3 rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col gap-2";
+        card.className = `bg-white p-4 rounded-xl border shadow-sm flex flex-col justify-between transition ${price !== '' ? 'border-blue-400 ring-1 ring-blue-100' : 'border-slate-200'}`;
 
         card.innerHTML = `
-          <div class="flex items-start justify-between gap-2">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="badge-transit ${transitBadgeClass} text-white">${hotel.penyeTransit}</span>
-                <h3 class="font-bold text-slate-800 text-sm leading-snug">${hotel.name}</h3>
+          <div>
+            <!-- Üst Başlık & Semt -->
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <span class="badge-transit ${transitBadgeClass} text-white">${hotel.penyeTransit}</span>
+                  <h3 class="font-bold text-slate-800 text-sm leading-tight">${hotel.name}</h3>
+                </div>
+                <span class="inline-block bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded mt-1 font-medium">${hotel.region}</span>
               </div>
-              <p class="text-[11px] text-slate-500 mt-0.5">${hotel.district} • ⭐ ${hotel.rating}</p>
-            </div>
-            ${parkingHTML}
-          </div>
-
-          <!-- Ulaşım Açıklaması -->
-          <div class="text-[11px] bg-slate-50 p-1.5 rounded text-slate-600 border border-slate-100 flex items-center gap-1.5">
-            <i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-400 flex-shrink-0"></i>
-            <span>${hotel.transitDesc}</span>
-          </div>
-
-          <!-- İnteraktif Kahvaltı Tiki ve Fiyat Girişi -->
-          <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 mt-1">
-            
-            <!-- Kahvaltı Değiştirme Butonu -->
-            <button onclick="toggleBreakfast(${hotel.id})" class="flex items-center gap-1 px-2 py-1 rounded text-xs transition ${hasBreakfast ? 'bg-emerald-100 text-emerald-800 font-medium' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}">
-              <i data-lucide="${hasBreakfast ? 'check-square' : 'square'}" class="w-3.5 h-3.5 ${hasBreakfast ? 'text-emerald-600' : 'text-slate-400'}"></i>
-              <span>Kahvaltı Dahil</span>
-            </button>
-
-            <!-- Fiyat Not Alma Kutusu -->
-            <div class="flex items-center bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
-              <span class="text-xs text-slate-400 mr-1">₺</span>
-              <input type="number" value="${price}" onchange="savePrice(${hotel.id}, this.value)" placeholder="Fiyat gir" class="w-20 bg-transparent text-xs font-semibold text-slate-700 focus:outline-none">
+              <div class="text-right">
+                <span class="bg-amber-50 text-amber-700 text-xs font-bold px-1.5 py-0.5 rounded border border-amber-200">⭐ ${hotel.rating}</span>
+              </div>
             </div>
 
+            <!-- Yürüme Süresi ve Ulaşım -->
+            <div class="text-xs bg-slate-50 p-2 rounded-lg text-slate-600 border border-slate-100 mb-3 space-y-1">
+              <div class="flex items-center gap-1 text-slate-700 font-medium">
+                <i data-lucide="footprints" class="w-3.5 h-3.5 text-blue-500"></i>
+                <span>Durağa Yürüme: <strong>${hotel.walkMin} dakika</strong></span>
+              </div>
+              <p class="text-[11px] text-slate-500">${hotel.transitDesc}</p>
+            </div>
+
+            <!-- Otopark ve Kahvaltı -->
+            <div class="flex items-center justify-between gap-2 mb-3 text-xs">
+              ${parkingHTML}
+              <button onclick="toggleBreakfast(${hotel.id})" class="flex items-center gap-1 px-2 py-1 rounded text-xs transition ${hasBreakfast ? 'bg-emerald-100 text-emerald-800 font-medium' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}">
+                <i data-lucide="${hasBreakfast ? 'check-square' : 'square'}" class="w-3.5 h-3.5 ${hasBreakfast ? 'text-emerald-600' : 'text-slate-400'}"></i>
+                <span>Kahvaltı Dahil</span>
+              </button>
+            </div>
           </div>
 
-          <!-- Sağ Panelde Açma Butonları -->
-          <div class="grid grid-cols-2 gap-2 pt-1">
-            <button onclick="openPreview('${googleUrl}', 'Google Hotels: ${hotel.name}')" class="flex items-center justify-center gap-1 bg-blue-50 text-blue-700 hover:bg-blue-100 p-1.5 rounded text-xs font-medium transition">
-              <i data-lucide="search" class="w-3.5 h-3.5"></i>
-              <span>Google</span>
-            </button>
-            <button onclick="openPreview('${trivagoUrl}', 'Trivago: ${hotel.name}')" class="flex items-center justify-center gap-1 bg-amber-50 text-amber-700 hover:bg-amber-100 p-1.5 rounded text-xs font-medium transition">
-              <i data-lucide="compass" class="w-3.5 h-3.5"></i>
-              <span>Trivago</span>
-            </button>
+          <!-- Fiyat Kutusu ve Dış Bağlantılar -->
+          <div class="pt-2 border-t border-slate-100 space-y-2">
+            <div class="flex items-center justify-between bg-blue-50/50 p-1.5 rounded-lg border border-blue-100">
+              <span class="text-xs font-medium text-slate-600">İncelediğiniz Fiyat:</span>
+              <div class="flex items-center">
+                <span class="text-xs font-bold text-blue-600 mr-1">₺</span>
+                <input type="number" value="${price}" onchange="savePrice(${hotel.id}, this.value)" placeholder="Fiyat Yaz" class="w-24 bg-white border border-slate-300 rounded px-2 py-1 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500 text-right">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <a href="${googleUrl}" target="_blank" class="flex items-center justify-center gap-1 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg text-xs font-medium transition shadow-sm">
+                <i data-lucide="search" class="w-3.5 h-3.5"></i>
+                <span>Google'da Gör</span>
+              </a>
+              <a href="${trivagoUrl}" target="_blank" class="flex items-center justify-center gap-1 bg-amber-500 hover:bg-amber-600 text-white p-2 rounded-lg text-xs font-medium transition shadow-sm">
+                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                <span>Trivago'da Gör</span>
+              </a>
+            </div>
           </div>
         `;
 
@@ -331,23 +301,6 @@
       });
 
       lucide.createIcons();
-    }
-
-    // Sağ Panele Sayfa Yükleme Fonksiyonu
-    function openPreview(url, title) {
-      const iframe = document.getElementById('previewIframe');
-      const placeholder = document.getElementById('previewPlaceholder');
-      const titleSpan = document.getElementById('previewTitle');
-      const actions = document.getElementById('previewActions');
-      const externalLink = document.getElementById('externalLink');
-
-      titleSpan.innerText = title;
-      externalLink.href = url;
-      actions.style.display = 'flex';
-
-      placeholder.classList.add('hidden');
-      iframe.classList.remove('hidden');
-      iframe.src = url;
     }
   </script>
 </body>
