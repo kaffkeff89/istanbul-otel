@@ -186,14 +186,21 @@
       }
     }
 
-    // Klavyeden yazarken klavyenin kapanmaması için savePrice metodu onchange/blur ile tetiklenir
-    function savePrice(id, priceVal) {
+    // Butona basıldığında veya Enter'a basıldığında fiyatı kaydedip listeyi sırala
+    function submitPrice(id) {
+      const inputEl = document.getElementById(`priceInput-${id}`);
+      if (!inputEl) return;
+      
+      const priceVal = inputEl.value;
       if (priceVal === '' || priceVal === null) {
         delete savedPrices[id];
       } else {
         savedPrices[id] = parseFloat(priceVal);
       }
       localStorage.setItem('hotel_prices_db', JSON.stringify(savedPrices));
+      
+      // Kaydedince ekranı yenile ve ucuzdan pahalıya sırala
+      renderHotels();
     }
 
     function toggleBreakfast(id) {
@@ -210,8 +217,8 @@
 
       if (sort === 'priceAsc') {
         list.sort((a, b) => {
-          const pA = savedPrices[a.id] !== undefined ? savedPrices[a.id] : 999999;
-          const pB = savedPrices[b.id] !== undefined ? savedPrices[b.id] : 999999;
+          const pA = savedPrices[a.id] !== undefined ? savedPrices[a.id] : 9999999;
+          const pB = savedPrices[b.id] !== undefined ? savedPrices[b.id] : 9999999;
           return pA - pB;
         });
       } else if (sort === 'ratingDesc') {
@@ -255,7 +262,7 @@
         const trivagoUrl = `https://www.trivago.com.tr/tr/srl?q=${encodeURIComponent(hotel.name)}&checkIn=${checkIn}&checkOut=${checkOut}&adults=2`;
 
         const card = document.createElement('div');
-        card.className = `bg-white p-3 rounded-xl border shadow-sm flex flex-col justify-between transition ${price !== '' ? 'border-blue-400 ring-1 ring-blue-100' : 'border-slate-200'}`;
+        card.className = `bg-white p-3 rounded-xl border shadow-sm flex flex-col justify-between transition ${price !== '' ? 'border-blue-500 ring-1 ring-blue-200 bg-blue-50/10' : 'border-slate-200'}`;
 
         card.innerHTML = `
           <div>
@@ -288,12 +295,15 @@
           </div>
 
           <div class="pt-2 border-t border-slate-100 space-y-1.5">
-            <div class="flex items-center justify-between bg-blue-50/60 p-1 rounded-lg border border-blue-100">
+            <!-- FİYAT GİRİŞİ VE ONAY BUTONU -->
+            <div class="flex items-center justify-between bg-slate-50 p-1.5 rounded-lg border border-slate-200">
               <span class="text-[11px] font-medium text-slate-600">Gördüğün Fiyat:</span>
-              <div class="flex items-center">
-                <span class="text-xs font-bold text-blue-600 mr-1">₺</span>
-                <!-- onchange ve blur kullanarak klavyeden yazarken kapanma sorunu çözüldü -->
-                <input type="number" inputmode="decimal" pattern="[0-9]*" value="${price}" onchange="savePrice(${hotel.id}, this.value)" onblur="renderHotels()" placeholder="Fiyat Gir" class="w-20 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500 text-right">
+              <div class="flex items-center gap-1">
+                <span class="text-xs font-bold text-blue-600">₺</span>
+                <input type="number" id="priceInput-${hotel.id}" inputmode="numeric" pattern="[0-9]*" value="${price}" onkeydown="if(event.key === 'Enter') submitPrice(${hotel.id})" placeholder="Fiyat" class="w-20 bg-white border border-slate-300 rounded px-1.5 py-1 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500 text-right">
+                <button onclick="submitPrice(${hotel.id})" class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-[10px] font-bold px-2 py-1 rounded transition shadow-sm" title="Fiyatı Kaydet ve Sırala">
+                  Kaydet
+                </button>
               </div>
             </div>
 
