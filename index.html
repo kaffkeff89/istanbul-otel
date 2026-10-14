@@ -154,7 +154,6 @@
       return date.toISOString().split('T')[0];
     }
 
-    // Giriş Tarihi Seçildiğinde
     function handleInChange(val) {
       if (!val) return;
       const inDate = new Date(val);
@@ -167,7 +166,6 @@
       renderHotels();
     }
 
-    // Çıkış Tarihi Seçildiğinde
     function handleOutChange(val) {
       if (!val) return;
       const outDate = new Date(val);
@@ -188,14 +186,14 @@
       }
     }
 
-    function savePrice(id, price) {
-      if (price === '' || price === null) {
+    // Klavyeden yazarken klavyenin kapanmaması için savePrice metodu onchange/blur ile tetiklenir
+    function savePrice(id, priceVal) {
+      if (priceVal === '' || priceVal === null) {
         delete savedPrices[id];
       } else {
-        savedPrices[id] = parseFloat(price);
+        savedPrices[id] = parseFloat(priceVal);
       }
       localStorage.setItem('hotel_prices_db', JSON.stringify(savedPrices));
-      renderHotels();
     }
 
     function toggleBreakfast(id) {
@@ -294,8 +292,8 @@
               <span class="text-[11px] font-medium text-slate-600">Gördüğün Fiyat:</span>
               <div class="flex items-center">
                 <span class="text-xs font-bold text-blue-600 mr-1">₺</span>
-                <!-- YALNIZCA SAYI KLAVYESİ AÇAN INPUT -->
-                <input type="number" inputmode="decimal" pattern="[0-9]*" value="${price}" oninput="savePrice(${hotel.id}, this.value)" placeholder="Fiyat Gir" class="w-20 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500 text-right">
+                <!-- onchange ve blur kullanarak klavyeden yazarken kapanma sorunu çözüldü -->
+                <input type="number" inputmode="decimal" pattern="[0-9]*" value="${price}" onchange="savePrice(${hotel.id}, this.value)" onblur="renderHotels()" placeholder="Fiyat Gir" class="w-20 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500 text-right">
               </div>
             </div>
 
