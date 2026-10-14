@@ -30,7 +30,6 @@
         </div>
 
         <div class="flex items-center gap-2">
-          <!-- Belirgin Fiyat Sıfırlama Butonu -->
           <button onclick="resetAllPrices()" class="bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold px-2.5 py-1 rounded-lg border border-red-400 shadow-sm transition flex items-center gap-1 active:scale-95">
             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
             <span>Fiyatları Sıfırla</span>
@@ -40,24 +39,20 @@
         </div>
       </div>
 
-      <!-- Akıllı Sıralı Tarih Seçimi -->
-      <div class="bg-slate-800 p-2 rounded-lg border border-slate-700 flex flex-col gap-1.5">
-        <div class="flex items-center justify-between text-[11px] text-slate-300">
-          <span id="datePickStatus" class="font-medium text-blue-400">1. Dokunuş: Giriş Tarihi Seçin</span>
-          <button onclick="resetDates()" class="text-[10px] text-slate-400 underline hover:text-white">Tarihleri Sıfırla</button>
+      <!-- Bağımsız İki Aşamalı Tarih Seçici -->
+      <div class="grid grid-cols-2 gap-2 text-xs">
+        <div class="flex flex-col bg-slate-800 p-1.5 rounded border border-slate-700">
+          <label class="text-blue-400 text-[10px] font-bold mb-0.5 flex items-center gap-1">
+            <i data-lucide="calendar" class="w-3 h-3"></i> 1. Giriş Tarihi
+          </label>
+          <input type="date" id="checkInDate" onchange="handleInChange(this.value)" class="bg-slate-900 text-white text-[11px] p-1 rounded border border-slate-600 focus:outline-none focus:border-blue-500 w-full cursor-pointer">
         </div>
-        
-        <div class="grid grid-cols-2 gap-2 text-xs">
-          <div class="flex items-center bg-slate-900 px-2 py-1.5 rounded border border-slate-700" id="checkInBox">
-            <i data-lucide="calendar" class="w-3.5 h-3.5 text-blue-400 mr-1 flex-shrink-0"></i>
-            <span class="text-slate-400 mr-1 text-[10px]">Giriş:</span>
-            <input type="date" id="checkInDate" onchange="onDatePickerSelect(this.value, 'in')" class="bg-transparent text-white focus:outline-none w-full text-[11px] cursor-pointer">
-          </div>
-          <div class="flex items-center bg-slate-900 px-2 py-1.5 rounded border border-slate-700 opacity-60" id="checkOutBox">
-            <i data-lucide="calendar-check" class="w-3.5 h-3.5 text-amber-400 mr-1 flex-shrink-0"></i>
-            <span class="text-slate-400 mr-1 text-[10px]">Çıkış:</span>
-            <input type="date" id="checkOutDate" onchange="onDatePickerSelect(this.value, 'out')" class="bg-transparent text-white focus:outline-none w-full text-[11px] cursor-pointer">
-          </div>
+
+        <div class="flex flex-col bg-slate-800 p-1.5 rounded border border-slate-700">
+          <label class="text-amber-400 text-[10px] font-bold mb-0.5 flex items-center gap-1">
+            <i data-lucide="calendar-check" class="w-3 h-3"></i> 2. Çıkış Tarihi
+          </label>
+          <input type="date" id="checkOutDate" onchange="handleOutChange(this.value)" class="bg-slate-900 text-white text-[11px] p-1 rounded border border-slate-600 focus:outline-none focus:border-amber-500 w-full cursor-pointer">
         </div>
       </div>
 
@@ -144,9 +139,6 @@
     let savedPrices = JSON.parse(localStorage.getItem('hotel_prices_db')) || {};
     let savedBreakfast = JSON.parse(localStorage.getItem('hotel_breakfast_db')) || {};
 
-    // Tarih Seçimi Adım Durumu (0: Giriş Bekleniyor, 1: Çıkış Bekleniyor)
-    let datePickStep = 0;
-
     window.addEventListener('DOMContentLoaded', () => {
       const today = new Date();
       const tomorrow = new Date(today);
@@ -162,51 +154,30 @@
       return date.toISOString().split('T')[0];
     }
 
-    // Sıralı Çift Dokunuşlu Tarih Mantığı
-    function onDatePickerSelect(selectedVal, triggerType) {
-      const checkInInput = document.getElementById('checkInDate');
-      const checkOutInput = document.getElementById('checkOutDate');
-      const statusText = document.getElementById('datePickStatus');
-      const checkInBox = document.getElementById('checkInBox');
-      const checkOutBox = document.getElementById('checkOutBox');
-
-      if (datePickStep === 0) {
-        // 1. Dokunuş: Giriş Tarihi Olarak İşle
-        checkInInput.value = selectedVal;
-        datePickStep = 1;
-        statusText.innerText = "2. Dokunuş: Çıkış Tarihi Seçin";
-        statusText.className = "font-medium text-amber-400";
-        checkInBox.classList.add('opacity-60');
-        checkOutBox.classList.remove('opacity-60');
-      } else {
-        // 2. Dokunuş: Çıkış Tarihi Olarak İşle
-        checkOutInput.value = selectedVal;
-        
-        // Çıkış tarihi girişten küçükse girişten 1 gün sonraya ayarla
-        if (new Date(checkOutInput.value) <= new Date(checkInInput.value)) {
-          const inDate = new Date(checkInInput.value);
-          const outDate = new Date(inDate);
-          outDate.setDate(outDate.getDate() + 1);
-          checkOutInput.value = formatDate(outDate);
-        }
-
-        datePickStep = 0; // Sıfırla (Bir sonraki dokunuş tekrar Giriş olur)
-        statusText.innerText = "Tarihler Seçildi (Yeni seçim için dokunun)";
-        statusText.className = "font-medium text-emerald-400";
-        checkInBox.classList.remove('opacity-60');
-        checkOutBox.classList.remove('opacity-60');
+    // Giriş Tarihi Seçildiğinde
+    function handleInChange(val) {
+      if (!val) return;
+      const inDate = new Date(val);
+      const outInput = document.getElementById('checkOutDate');
+      if (outInput.value && new Date(outInput.value) <= inDate) {
+        const nextDay = new Date(inDate);
+        nextDay.setDate(nextDay.getDate() + 1);
+        outInput.value = formatDate(nextDay);
       }
-
       renderHotels();
     }
 
-    function resetDates() {
-      datePickStep = 0;
-      const statusText = document.getElementById('datePickStatus');
-      statusText.innerText = "1. Dokunuş: Giriş Tarihi Seçin";
-      statusText.className = "font-medium text-blue-400";
-      document.getElementById('checkInBox').classList.remove('opacity-60');
-      document.getElementById('checkOutBox').classList.remove('opacity-60');
+    // Çıkış Tarihi Seçildiğinde
+    function handleOutChange(val) {
+      if (!val) return;
+      const outDate = new Date(val);
+      const inInput = document.getElementById('checkInDate');
+      if (inInput.value && new Date(inInput.value) >= outDate) {
+        const prevDay = new Date(outDate);
+        prevDay.setDate(prevDay.getDate() - 1);
+        inInput.value = formatDate(prevDay);
+      }
+      renderHotels();
     }
 
     function resetAllPrices() {
@@ -323,7 +294,8 @@
               <span class="text-[11px] font-medium text-slate-600">Gördüğün Fiyat:</span>
               <div class="flex items-center">
                 <span class="text-xs font-bold text-blue-600 mr-1">₺</span>
-                <input type="number" value="${price}" oninput="savePrice(${hotel.id}, this.value)" placeholder="Fiyat Gir" class="w-20 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500 text-right">
+                <!-- YALNIZCA SAYI KLAVYESİ AÇAN INPUT -->
+                <input type="number" inputmode="decimal" pattern="[0-9]*" value="${price}" oninput="savePrice(${hotel.id}, this.value)" placeholder="Fiyat Gir" class="w-20 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500 text-right">
               </div>
             </div>
 
