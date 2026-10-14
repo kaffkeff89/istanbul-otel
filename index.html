@@ -13,11 +13,11 @@
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800 flex flex-col font-sans pb-10">
 
-  <!-- ÜST KONTROL PANELİ (Mobil Uyumlu Sticky) -->
+  <!-- ÜST KONTROL PANELİ -->
   <header class="bg-slate-900 text-white p-3 shadow-md z-30 sticky top-0">
     <div class="max-w-7xl mx-auto flex flex-col gap-2.5">
       
-      <!-- Başlık ve Liste Sayısı -->
+      <!-- Başlık, Liste Sayısı ve Fiyat Sıfırlama -->
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
           <div class="bg-blue-600 text-white p-1.5 rounded-lg shadow">
@@ -28,20 +28,28 @@
             <p class="text-[10px] text-slate-400">Penye Teks Ulaşım & Fiyat Takibi</p>
           </div>
         </div>
-        <span id="hotelCount" class="bg-blue-900/80 text-blue-200 text-[11px] font-bold px-2 py-0.5 rounded-full border border-blue-700">33 Otel</span>
+
+        <div class="flex items-center gap-2">
+          <button onclick="resetAllPrices()" class="bg-red-600/80 hover:bg-red-600 text-white text-[10px] font-medium px-2 py-1 rounded-md border border-red-500 transition flex items-center gap-1" title="Tüm girilen fiyatları temizle">
+            <i data-lucide="trash-2" class="w-3 h-3"></i>
+            <span>Fiyatları Sıfırla</span>
+          </button>
+          
+          <span id="hotelCount" class="bg-blue-900/80 text-blue-200 text-[11px] font-bold px-2 py-0.5 rounded-full border border-blue-700">33 Otel</span>
+        </div>
       </div>
 
-      <!-- Tarih Seçimi -->
+      <!-- Tarih Seçimi (Google & Trivago Birebir Bağlantılı) -->
       <div class="grid grid-cols-2 gap-2 text-xs">
         <div class="flex items-center bg-slate-800 px-2 py-1.5 rounded border border-slate-700">
           <i data-lucide="calendar" class="w-3.5 h-3.5 text-blue-400 mr-1 flex-shrink-0"></i>
           <span class="text-slate-400 mr-1 text-[10px]">Giriş:</span>
-          <input type="date" id="checkInDate" onchange="handleCheckInChange()" class="bg-transparent text-white focus:outline-none w-full text-[11px] cursor-pointer">
+          <input type="date" id="checkInDate" onchange="handleDateChange('in')" class="bg-transparent text-white focus:outline-none w-full text-[11px] cursor-pointer">
         </div>
         <div class="flex items-center bg-slate-800 px-2 py-1.5 rounded border border-slate-700">
           <i data-lucide="calendar-check" class="w-3.5 h-3.5 text-amber-400 mr-1 flex-shrink-0"></i>
           <span class="text-slate-400 mr-1 text-[10px]">Çıkış:</span>
-          <input type="date" id="checkOutDate" onchange="renderHotels()" class="bg-transparent text-white focus:outline-none w-full text-[11px] cursor-pointer">
+          <input type="date" id="checkOutDate" onchange="handleDateChange('out')" class="bg-transparent text-white focus:outline-none w-full text-[11px] cursor-pointer">
         </div>
       </div>
 
@@ -57,7 +65,7 @@
         </select>
 
         <select id="sortSelect" onchange="renderHotels()" class="bg-slate-800 border border-slate-700 text-[11px] text-white rounded px-2 py-1.5 focus:outline-none cursor-pointer w-full">
-          <option value="priceAsc" selected>Ucuzdan Pahaıya</option>
+          <option value="priceAsc" selected>Ucuzdan Pahalıya</option>
           <option value="ratingDesc">Puanı Yüksek</option>
           <option value="walkAsc">Durağa En Yakın</option>
         </select>
@@ -66,7 +74,7 @@
     </div>
   </header>
 
-  <!-- İÇERİK (Mobil Scroll Özellikli) -->
+  <!-- İÇERİK -->
   <main class="max-w-7xl mx-auto w-full p-3 flex-1">
     
     <!-- Rozet Açıklamaları -->
@@ -142,19 +150,30 @@
       return date.toISOString().split('T')[0];
     }
 
-    // Giriş tarihi değişince çıkış tarihini otomatik 1 gün sonraya at
-    function handleCheckInChange() {
-      const checkInInput = document.getElementById('checkInDate').value;
-      if (checkInInput) {
-        const inDate = new Date(checkInInput);
-        const outDate = new Date(inDate);
-        outDate.setDate(outDate.getDate() + 1);
-        document.getElementById('checkOutDate').value = formatDate(outDate);
+    function handleDateChange(type) {
+      const checkInInput = document.getElementById('checkInDate');
+      const checkOutInput = document.getElementById('checkOutDate');
+
+      if (checkInInput.value && checkOutInput.value) {
+        if (new Date(checkOutInput.value) < new Date(checkInInput.value)) {
+          if (type === 'in') {
+            checkOutInput.value = checkInInput.value;
+          } else {
+            checkInInput.value = checkOutInput.value;
+          }
+        }
       }
       renderHotels();
     }
 
-    // Fiyat girildiğinde ANINDA kaydet ve canlı sırala
+    function resetAllPrices() {
+      if (confirm("Girmiş olduğunuz tüm otel fiyatları silinecek. Emin misiniz?")) {
+        savedPrices = {};
+        localStorage.removeItem('hotel_prices_db');
+        renderHotels();
+      }
+    }
+
     function savePrice(id, price) {
       if (price === '' || price === null) {
         delete savedPrices[id];
@@ -165,7 +184,6 @@
       renderHotels();
     }
 
-    // Kahvaltı tikine tıklanınca ANINDA güncelle
     function toggleBreakfast(id) {
       savedBreakfast[id] = !savedBreakfast[id];
       localStorage.setItem('hotel_breakfast_db', JSON.stringify(savedBreakfast));
@@ -212,7 +230,6 @@
         if (hotel.penyeTransit === 'M') transitBadgeClass = 'bg-blue-600';
         if (hotel.penyeTransit === 'M+T') transitBadgeClass = 'bg-purple-600';
 
-        // Otopark Simgesi
         let parkingHTML = '';
         if (hotel.parking === 'free') {
           parkingHTML = `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[10px] px-1.5 py-0.5 rounded flex items-center gap-0.5" title="Ücretsiz Otopark"><i data-lucide="square-p" class="w-3.5 h-3.5"></i> Ücretsiz P</span>`;
@@ -222,7 +239,8 @@
           parkingHTML = `<span class="bg-red-50 text-red-500 border border-red-200 font-bold text-[10px] px-1.5 py-0.5 rounded flex items-center gap-0.5 line-through opacity-75" title="Otopark Yok"><i data-lucide="square-p" class="w-3.5 h-3.5"></i> P Yok</span>`;
         }
 
-        const googleUrl = `https://www.google.com/travel/hotels/search?q=${encodeURIComponent(hotel.name + ' ' + hotel.district)}&q=${checkIn}&checkout=${checkOut}`;
+        // Birebir Tarih Parametreleri ile Google & Trivago Linkleri
+        const googleUrl = `https://www.google.com/travel/hotels/search?q=${encodeURIComponent(hotel.name + ' ' + hotel.district)}&dates=${checkIn},${checkOut}`;
         const trivagoUrl = `https://www.trivago.com.tr/tr/srl?q=${encodeURIComponent(hotel.name)}&checkIn=${checkIn}&checkOut=${checkOut}&adults=2`;
 
         const card = document.createElement('div');
@@ -230,7 +248,6 @@
 
         card.innerHTML = `
           <div>
-            <!-- Başlık, Rozet ve Puan -->
             <div class="flex items-start justify-between gap-1 mb-1.5">
               <div>
                 <div class="flex items-center gap-1.5">
@@ -242,7 +259,6 @@
               <span class="bg-amber-50 text-amber-700 text-[10px] font-bold px-1 py-0.5 rounded border border-amber-200 flex-shrink-0">⭐ ${hotel.rating}</span>
             </div>
 
-            <!-- Yürüme Süresi -->
             <div class="text-[11px] bg-slate-50 p-1.5 rounded-lg text-slate-600 border border-slate-100 mb-2 space-y-0.5">
               <div class="flex items-center gap-1 text-slate-700 font-medium">
                 <i data-lucide="footprints" class="w-3 h-3 text-blue-500"></i>
@@ -251,7 +267,6 @@
               <p class="text-[10px] text-slate-500">${hotel.transitDesc}</p>
             </div>
 
-            <!-- Otopark ve Kahvaltı Butonu -->
             <div class="flex items-center justify-between gap-1 mb-2">
               ${parkingHTML}
               <button onclick="toggleBreakfast(${hotel.id})" class="flex items-center gap-1 px-2 py-0.5 rounded text-[11px] transition ${hasBreakfast ? 'bg-emerald-100 text-emerald-800 font-medium border border-emerald-300' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}">
@@ -261,7 +276,6 @@
             </div>
           </div>
 
-          <!-- Fiyat Kutusu ve Arama Butonları -->
           <div class="pt-2 border-t border-slate-100 space-y-1.5">
             <div class="flex items-center justify-between bg-blue-50/60 p-1 rounded-lg border border-blue-100">
               <span class="text-[11px] font-medium text-slate-600">Gördüğün Fiyat:</span>
