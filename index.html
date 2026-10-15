@@ -10,22 +10,65 @@
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      -webkit-text-size-adjust: 100%;
+    }
+
     .badge-transit {
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      min-width:28px;
-      height:22px;
-      border-radius:6px;
-      font-weight:bold;
-      font-size:11px;
-      flex-shrink:0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      height: 22px;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 11px;
+      flex-shrink: 0;
     }
-    input, select, button, a {
-      -webkit-tap-highlight-color:transparent;
-    }
+
     input[type="number"] {
-      touch-action:manipulation;
+      touch-action: manipulation;
+      appearance: textfield;
+      -moz-appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .reset-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border: 1px solid rgba(248, 113, 113, 0.25);
+      border-radius: 9px;
+      background: rgba(127, 29, 29, 0.18);
+      color: #fca5a5;
+      font-size: 11px;
+      font-weight: 500;
+      transition: background 0.2s, color 0.2s, transform 0.2s;
+      white-space: nowrap;
+    }
+
+    .reset-button:hover {
+      background: rgba(127, 29, 29, 0.38);
+      color: #fecaca;
+    }
+
+    .reset-button:active {
+      transform: scale(0.97);
+    }
+
+    input, select, button, a {
+      -webkit-tap-highlight-color: transparent;
     }
   </style>
 </head>
@@ -40,48 +83,58 @@
         <div class="bg-blue-600 text-white p-1.5 rounded-lg">
           <i data-lucide="building-2" class="w-4 h-4"></i>
         </div>
+
         <div>
           <h1 class="font-bold text-xs sm:text-sm leading-tight">İstanbul Otellerim</h1>
           <p class="text-[10px] text-slate-400">Penye Teks Ulaşım & Fiyat Takibi</p>
         </div>
       </div>
 
-      <div class="flex items-center gap-2 shrink-0">
-        <button type="button" onclick="resetAllPrices()"
-          class="bg-red-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-lg border border-red-400 flex items-center gap-1 active:scale-95">
-          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-          <span>Fiyatları Sıfırla</span>
-        </button>
-        <span id="hotelCount"
-          class="bg-blue-900/80 text-blue-200 text-[11px] font-bold px-2 py-1 rounded-lg border border-blue-700">
-          33 Otel
-        </span>
-      </div>
+      <button
+        type="button"
+        onclick="resetAllPrices()"
+        class="reset-button shrink-0"
+        aria-label="Kaydedilmiş tüm otel fiyatlarını sıfırla"
+      >
+        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+        <span>Fiyatları Sıfırla</span>
+      </button>
     </div>
 
     <div class="grid grid-cols-2 gap-2 text-xs">
       <div class="flex flex-col bg-slate-800 p-1.5 rounded border border-slate-700">
         <label class="text-blue-400 text-[10px] font-bold mb-0.5">
-          <i data-lucide="calendar" class="w-3 h-3 inline"></i> 1. Giriş Tarihi
+          <i data-lucide="calendar" class="w-3 h-3 inline"></i>
+          1. Giriş Tarihi
         </label>
-        <input type="date" id="checkInDate"
+        <input
+          type="date"
+          id="checkInDate"
           onchange="handleInChange(this.value)"
-          class="bg-slate-900 text-white text-[11px] p-1 rounded border border-slate-600 w-full">
+          class="bg-slate-900 text-white text-[11px] p-1 rounded border border-slate-600 w-full"
+        >
       </div>
 
       <div class="flex flex-col bg-slate-800 p-1.5 rounded border border-slate-700">
         <label class="text-amber-400 text-[10px] font-bold mb-0.5">
-          <i data-lucide="calendar-check" class="w-3 h-3 inline"></i> 2. Çıkış Tarihi
+          <i data-lucide="calendar-check" class="w-3 h-3 inline"></i>
+          2. Çıkış Tarihi
         </label>
-        <input type="date" id="checkOutDate"
+        <input
+          type="date"
+          id="checkOutDate"
           onchange="handleOutChange(this.value)"
-          class="bg-slate-900 text-white text-[11px] p-1 rounded border border-slate-600 w-full">
+          class="bg-slate-900 text-white text-[11px] p-1 rounded border border-slate-600 w-full"
+        >
       </div>
     </div>
 
     <div class="grid grid-cols-2 gap-2 text-xs">
-      <select id="districtFilter" onchange="renderHotels()"
-        class="bg-slate-800 border border-slate-700 text-[11px] text-white rounded px-2 py-1.5 w-full">
+      <select
+        id="districtFilter"
+        onchange="renderHotels()"
+        class="bg-slate-800 border border-slate-700 text-[11px] text-white rounded px-2 py-1.5 w-full"
+      >
         <option value="all">Tüm Semtler</option>
         <option value="Sultanahmet / Sirkeci">Sultanahmet / Sirkeci</option>
         <option value="Laleli / Fatih">Laleli / Fatih</option>
@@ -91,8 +144,11 @@
         <option value="Diğer Bölgeler">Diğer Bölgeler</option>
       </select>
 
-      <select id="sortSelect" onchange="renderHotels()"
-        class="bg-slate-800 border border-slate-700 text-[11px] text-white rounded px-2 py-1.5 w-full">
+      <select
+        id="sortSelect"
+        onchange="renderHotels()"
+        class="bg-slate-800 border border-slate-700 text-[11px] text-white rounded px-2 py-1.5 w-full"
+      >
         <option value="priceAsc">Ucuzdan Pahalıya</option>
         <option value="ratingDesc">Puanı Yüksek</option>
         <option value="walkAsc">Durağa En Yakın</option>
@@ -105,13 +161,17 @@
 
   <div class="bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm mb-3 text-[11px] flex flex-wrap items-center gap-2">
     <span class="font-bold text-slate-700">Ulaşım:</span>
+
     <div class="flex items-center gap-1.5 flex-wrap">
       <span class="badge-transit bg-emerald-600 text-white">T</span>
       <span class="text-slate-500 text-[10px]">Tramvay</span>
+
       <span class="badge-transit bg-blue-600 text-white">M</span>
       <span class="text-slate-500 text-[10px]">Metro</span>
+
       <span class="badge-transit bg-purple-600 text-white">M+T</span>
       <span class="text-slate-500 text-[10px]">Aktarma</span>
+
       <span class="badge-transit bg-amber-500 text-white">O</span>
       <span class="text-slate-500 text-[10px]">Otobüs</span>
     </div>
@@ -159,11 +219,10 @@ const hotelsData = [
   {id:33,name:"Ramada Encore Bayrampaşa",region:"Bayrampaşa",district:"Bayrampaşa",rating:4.0,parking:"free",penyeTransit:"M+T",walkMin:7,transitDesc:"Metro durağına 7 dk yürüme."}
 ];
 
-// Kayıtlı veriler
 function loadStorage(key) {
   try {
     const data = JSON.parse(localStorage.getItem(key));
-    return data && typeof data === "object" ? data : {};
+    return data && typeof data === "object" && data !== null ? data : {};
   } catch {
     return {};
   }
@@ -197,9 +256,9 @@ function addDays(dateString, days) {
 
 window.addEventListener("DOMContentLoaded", () => {
   const today = new Date();
+
   document.getElementById("checkInDate").value = localDateString(today);
-  document.getElementById("checkOutDate").value =
-    localDateString(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1));
+  document.getElementById("checkOutDate").value = addDays(localDateString(today), 1);
 
   renderHotels();
 });
@@ -208,9 +267,11 @@ function handleInChange(value) {
   if (!value) return;
 
   const out = document.getElementById("checkOutDate");
+
   if (out.value && out.value <= value) {
     out.value = addDays(value, 1);
   }
+
   updateBookingLinks();
 }
 
@@ -218,51 +279,63 @@ function handleOutChange(value) {
   if (!value) return;
 
   const checkIn = document.getElementById("checkInDate");
+
   if (checkIn.value && value <= checkIn.value) {
     checkIn.value = addDays(value, -1);
   }
+
   updateBookingLinks();
 }
 
-function updateBookingLinks() {
+function makeGoogleUrl(hotel) {
   const checkIn = document.getElementById("checkInDate").value;
   const checkOut = document.getElementById("checkOutDate").value;
 
+  // Google aramasında yalnızca otel adı kullanılır; ilçe eklenmez.
+  return `https://www.google.com/travel/hotels/search?q=${encodeURIComponent(hotel.name)}&dates=${checkIn},${checkOut}`;
+}
+
+function makeTrivagoUrl(hotel) {
+  const checkIn = document.getElementById("checkInDate").value;
+  const checkOut = document.getElementById("checkOutDate").value;
+
+  return `https://www.trivago.com.tr/tr/srl?q=${encodeURIComponent(hotel.name)}&checkIn=${checkIn}&checkOut=${checkOut}&adults=2`;
+}
+
+function updateBookingLinks() {
   document.querySelectorAll("[data-google-link]").forEach(link => {
     const hotel = hotelsData.find(h => h.id === Number(link.dataset.hotelId));
-    if (hotel) {
-      link.href = `https://www.google.com/travel/hotels/search?q=${encodeURIComponent(hotel.name + " " + hotel.district)}&dates=${checkIn},${checkOut}`;
-    }
+    if (hotel) link.href = makeGoogleUrl(hotel);
   });
 
   document.querySelectorAll("[data-trivago-link]").forEach(link => {
     const hotel = hotelsData.find(h => h.id === Number(link.dataset.hotelId));
-    if (hotel) {
-      link.href = `https://www.trivago.com.tr/tr/srl?q=${encodeURIComponent(hotel.name)}&checkIn=${checkIn}&checkOut=${checkOut}&adults=2`;
-    }
+    if (hotel) link.href = makeTrivagoUrl(hotel);
   });
 }
 
-// Fiyat sıralaması: fiyat girilmiş oteller önce, boşlar en sonda.
 function sortRenderedCards() {
   const container = document.getElementById("hotelList");
   const sort = document.getElementById("sortSelect").value;
-
   const cards = Array.from(container.children);
 
   cards.sort((cardA, cardB) => {
     const a = hotelsData.find(h => h.id === Number(cardA.dataset.hotelId));
     const b = hotelsData.find(h => h.id === Number(cardB.dataset.hotelId));
 
+    if (!a || !b) return 0;
+
     if (sort === "priceAsc") {
       const priceA = savedPrices[a.id];
       const priceB = savedPrices[b.id];
+
       const hasA = priceA !== undefined && priceA !== null && priceA !== "";
       const hasB = priceB !== undefined && priceB !== null && priceB !== "";
 
       if (hasA && !hasB) return -1;
       if (!hasA && hasB) return 1;
       if (!hasA && !hasB) return a.id - b.id;
+
       return Number(priceA) - Number(priceB) || a.id - b.id;
     }
 
@@ -274,17 +347,18 @@ function sortRenderedCards() {
       return a.walkMin - b.walkMin || a.id - b.id;
     }
 
-    return 0;
+    return a.id - b.id;
   });
 
-  // Kartları yeniden yaratmak yerine mevcut DOM elemanlarını taşıyoruz.
-  // Böylece aktif fiyat alanı ve mobil klavye korunur.
+  // Kartlar yeniden oluşturulmaz; yalnızca sıraları değiştirilir.
+  // Böylece fiyat alanındaki odak ve mobil klavye korunur.
   cards.forEach(card => container.appendChild(card));
 }
 
 function submitPrice(id) {
   const input = document.getElementById(`priceInput-${id}`);
   const card = document.querySelector(`[data-hotel-id="${id}"]`);
+
   if (!input || !card) return;
 
   const raw = input.value.trim();
@@ -305,7 +379,6 @@ function submitPrice(id) {
 
   if (!saveStorage("hotel_prices_db", savedPrices)) return;
 
-  // Kartı yeniden oluşturma. Sadece görünümünü ve sırasını güncelle.
   const hasPrice = savedPrices[id] !== undefined;
 
   card.classList.toggle("border-blue-500", hasPrice);
@@ -318,8 +391,13 @@ function submitPrice(id) {
 }
 
 function toggleBreakfast(id) {
-  savedBreakfast[id] = !savedBreakfast[id];
-  saveStorage("hotel_breakfast_db", savedBreakfast);
+  const previous = !!savedBreakfast[id];
+  savedBreakfast[id] = !previous;
+
+  if (!saveStorage("hotel_breakfast_db", savedBreakfast)) {
+    savedBreakfast[id] = previous;
+    return;
+  }
 
   const button = document.getElementById(`breakfast-${id}`);
   if (!button) return;
@@ -340,20 +418,27 @@ function toggleBreakfast(id) {
 }
 
 function resetAllPrices() {
-  if (!confirm("Girmiş olduğunuz tüm otel fiyatları silinecek. Emin misiniz?")) {
+  if (!confirm("Kaydedilmiş tüm otel fiyatları silinecek. Emin misiniz?")) {
     return;
   }
 
   savedPrices = {};
-  localStorage.removeItem("hotel_prices_db");
+
+  try {
+    localStorage.removeItem("hotel_prices_db");
+  } catch {
+    alert("Fiyatlar silinemedi. Tarayıcı depolama alanını kontrol edin.");
+    return;
+  }
+
   renderHotels();
 }
 
 function getFilteredHotels() {
   const region = document.getElementById("districtFilter").value;
 
-  return hotelsData.filter(h =>
-    region === "all" || h.region === region
+  return hotelsData.filter(hotel =>
+    region === "all" || hotel.region === region
   );
 }
 
@@ -361,50 +446,50 @@ function renderHotels() {
   const container = document.getElementById("hotelList");
   const filtered = getFilteredHotels();
 
-  document.getElementById("hotelCount").textContent = `${filtered.length} Otel`;
-
-  const checkIn = document.getElementById("checkInDate").value;
-  const checkOut = document.getElementById("checkOutDate").value;
-
   container.innerHTML = "";
+
+  const transitColors = {
+    "T": "bg-emerald-600",
+    "M": "bg-blue-600",
+    "M+T": "bg-purple-600",
+    "O": "bg-amber-500"
+  };
 
   filtered.forEach(hotel => {
     const price = savedPrices[hotel.id] ?? "";
     const hasPrice = price !== "";
     const hasBreakfast = !!savedBreakfast[hotel.id];
 
-    const transitColors = {
-      "T": "bg-emerald-600",
-      "M": "bg-blue-600",
-      "M+T": "bg-purple-600",
-      "O": "bg-amber-500"
-    };
-
-    let parkingHTML;
+    let parkingHTML = "";
 
     if (hotel.parking === "free") {
-      parkingHTML = `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[10px] px-1.5 py-0.5 rounded flex items-center gap-0.5">
-        <i data-lucide="square-parking" class="w-3.5 h-3.5"></i> Ücretsiz P</span>`;
+      parkingHTML = `
+        <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[10px] px-1.5 py-0.5 rounded flex items-center gap-0.5">
+          <i data-lucide="square-parking" class="w-3.5 h-3.5"></i>
+          Ücretsiz P
+        </span>`;
     } else if (hotel.parking === "paid") {
-      parkingHTML = `<span class="bg-amber-50 text-amber-700 border border-amber-200 font-bold text-[10px] px-1.5 py-0.5 rounded flex items-center gap-0.5">
-        <i data-lucide="square-parking" class="w-3.5 h-3.5"></i> P₺ Ücretli</span>`;
+      parkingHTML = `
+        <span class="bg-amber-50 text-amber-700 border border-amber-200 font-bold text-[10px] px-1.5 py-0.5 rounded flex items-center gap-0.5">
+          <i data-lucide="square-parking" class="w-3.5 h-3.5"></i>
+          P₺ Ücretli
+        </span>`;
     } else {
-      parkingHTML = `<span class="bg-red-50 text-red-500 border border-red-200 font-bold text-[10px] px-1.5 py-0.5 rounded flex items-center gap-0.5 opacity-75">
-        <i data-lucide="square-parking" class="w-3.5 h-3.5"></i> P Yok</span>`;
+      parkingHTML = `
+        <span class="bg-red-50 text-red-500 border border-red-200 font-bold text-[10px] px-1.5 py-0.5 rounded flex items-center gap-0.5 opacity-75">
+          <i data-lucide="square-parking" class="w-3.5 h-3.5"></i>
+          P Yok
+        </span>`;
     }
-
-    const googleUrl =
-      `https://www.google.com/travel/hotels/search?q=${encodeURIComponent(hotel.name + " " + hotel.district)}&dates=${checkIn},${checkOut}`;
-
-    const trivagoUrl =
-      `https://www.trivago.com.tr/tr/srl?q=${encodeURIComponent(hotel.name)}&checkIn=${checkIn}&checkOut=${checkOut}&adults=2`;
 
     const card = document.createElement("div");
 
     card.dataset.hotelId = hotel.id;
     card.className =
       `bg-white p-3 rounded-xl border shadow-sm flex flex-col justify-between transition ${
-        hasPrice ? "border-blue-500 ring-1 ring-blue-200 bg-blue-50/10" : "border-slate-200"
+        hasPrice
+          ? "border-blue-500 ring-1 ring-blue-200 bg-blue-50/10"
+          : "border-slate-200"
       }`;
 
     card.innerHTML = `
@@ -417,7 +502,10 @@ function renderHotels() {
             </div>
             <span class="inline-block bg-slate-100 text-slate-600 text-[9px] px-1.5 py-0.5 rounded mt-1 font-medium">${hotel.region}</span>
           </div>
-          <span class="bg-amber-50 text-amber-700 text-[10px] font-bold px-1 py-0.5 rounded border border-amber-200 flex-shrink-0">⭐ ${hotel.rating}</span>
+
+          <span class="bg-amber-50 text-amber-700 text-[10px] font-bold px-1 py-0.5 rounded border border-amber-200 flex-shrink-0">
+            ⭐ ${hotel.rating}
+          </span>
         </div>
 
         <div class="text-[11px] bg-slate-50 p-1.5 rounded-lg text-slate-600 border border-slate-100 mb-2 space-y-0.5">
@@ -430,13 +518,17 @@ function renderHotels() {
 
         <div class="flex items-center justify-between gap-1 mb-2">
           ${parkingHTML}
-          <button type="button" id="breakfast-${hotel.id}"
-            onclick="toggleBreakfast(${hotel.id})"
+
+          <button
+            type="button"
+            id="breakfast-${hotel.id}"
+            data-breakfast-id="${hotel.id}"
             class="flex items-center gap-1 px-2 py-0.5 rounded text-[11px] transition ${
               hasBreakfast
                 ? "bg-emerald-100 text-emerald-800 font-medium border border-emerald-300"
                 : "bg-slate-100 text-slate-500"
-            }">
+            }"
+          >
             <i data-lucide="${hasBreakfast ? "check-square" : "square"}"
               class="w-3 h-3 ${hasBreakfast ? "text-emerald-600" : "text-slate-400"}"></i>
             <span>Kahvaltı</span>
@@ -449,8 +541,10 @@ function renderHotels() {
           <label for="priceInput-${hotel.id}" class="text-[11px] font-medium text-slate-600 shrink-0">
             Gördüğün Fiyat:
           </label>
+
           <div class="flex items-center gap-1 min-w-0">
             <span class="text-xs font-bold text-blue-600">₺</span>
+
             <input
               type="number"
               id="priceInput-${hotel.id}"
@@ -462,22 +556,40 @@ function renderHotels() {
               autocomplete="off"
               class="w-20 min-w-0 bg-white border border-slate-300 rounded px-1.5 py-1 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500 text-right"
             >
-            <button type="button"
+
+            <button
+              type="button"
               data-save-price="${hotel.id}"
-              class="bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm active:scale-95">
+              class="bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm active:scale-95"
+            >
               Kaydet
             </button>
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-1.5">
-          <a data-google-link data-hotel-id="${hotel.id}" href="${googleUrl}" target="_blank" rel="noopener noreferrer"
-            class="flex items-center justify-center gap-1 bg-blue-600 text-white p-1.5 rounded-lg text-[11px] font-medium shadow-sm">
-            <i data-lucide="search" class="w-3 h-3"></i><span>Google</span>
+          <a
+            data-google-link
+            data-hotel-id="${hotel.id}"
+            href="${makeGoogleUrl(hotel)}"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center justify-center gap-1 bg-blue-600 text-white p-1.5 rounded-lg text-[11px] font-medium shadow-sm"
+          >
+            <i data-lucide="search" class="w-3 h-3"></i>
+            <span>Google</span>
           </a>
-          <a data-trivago-link data-hotel-id="${hotel.id}" href="${trivagoUrl}" target="_blank" rel="noopener noreferrer"
-            class="flex items-center justify-center gap-1 bg-amber-500 text-white p-1.5 rounded-lg text-[11px] font-medium shadow-sm">
-            <i data-lucide="external-link" class="w-3 h-3"></i><span>Trivago</span>
+
+          <a
+            data-trivago-link
+            data-hotel-id="${hotel.id}"
+            href="${makeTrivagoUrl(hotel)}"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center justify-center gap-1 bg-amber-500 text-white p-1.5 rounded-lg text-[11px] font-medium shadow-sm"
+          >
+            <i data-lucide="external-link" class="w-3 h-3"></i>
+            <span>Trivago</span>
           </a>
         </div>
       </div>
@@ -487,27 +599,39 @@ function renderHotels() {
   });
 
   lucide.createIcons();
+  sortRenderedCards();
+  updateBookingLinks();
 }
 
-// Tek bir olay dinleyicisi: Kaydet butonu veya klavyedeki Enter.
+// Fiyat kaydetme: Kartı yeniden oluşturmaz, klavyenin kapanmasını önler.
 document.getElementById("hotelList").addEventListener("click", event => {
-  const button = event.target.closest("[data-save-price]");
-  if (!button) return;
+  const saveButton = event.target.closest("[data-save-price]");
 
-  submitPrice(Number(button.dataset.savePrice));
+  if (saveButton) {
+    submitPrice(Number(saveButton.dataset.savePrice));
+    return;
+  }
+
+  const breakfastButton = event.target.closest("[data-breakfast-id]");
+
+  if (breakfastButton) {
+    toggleBreakfast(Number(breakfastButton.dataset.breakfastId));
+  }
 });
 
+// Enter tuşuyla fiyat kaydetme.
 document.getElementById("hotelList").addEventListener("keydown", event => {
-  if (event.key !== "Enter" || !event.target.matches('input[id^="priceInput-"]')) {
+  if (
+    event.key !== "Enter" ||
+    !event.target.matches('input[id^="priceInput-"]')
+  ) {
     return;
   }
 
   event.preventDefault();
-
-  const id = Number(event.target.id.replace("priceInput-", ""));
-  submitPrice(id);
+  submitPrice(Number(event.target.id.replace("priceInput-", "")));
 });
-
 </script>
+
 </body>
 </html>
